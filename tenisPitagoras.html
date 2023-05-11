@@ -72,7 +72,7 @@ let distanciaBola1ARaqueta2=[];
 let distanciaBola2ARaqueta1=[];
 let distanciaBola2ARaqueta2=[];
 let ball1 = {ordenada:300,velX:getRandomArbitrary(-1, 1),velY:1,radio: 10,nombre:"bola1",disanciaRaqueta1: 0,disanciaRaqueta2: 0 };
-let ball2 = {ordenada:300,velX:getRandomArbitrary(-1, 1),velY:-1,radio:10,nombre:"bola2",disanciaRaqueta1: 0,disanciaRaqueta2: 0};
+let ball2 = {ordenada:300,velX:getRandomArbitrary(-1, 1),velY:-1,radio:10,nombre:"bola2",disanciaRaqueta1: 0,disanciaRaqueta2: 0 };
 ball1.abcisa=canvas.width/2-ball1.radio-3;
 ball2.abcisa=canvas.width/2+ball2.radio+3;
 let raqueta1 = {longitud: 70,abcisa: 0 ,ordenada: 0, alto: 15};
@@ -119,8 +119,8 @@ function canvasApp(){
 }, false);
 
 botonDificultad.addEventListener("change", setearDificultad,false );
-document.addEventListener("mousemove",moverRaqueta,false);
-document.addEventListener("touchmove",moverRaqueta,false);
+document.addEventListener("mousemove",moverRaqueta1,false);
+
 botonRadio1Sumar.addEventListener("click",aumentarRadio1,false);
 botonRadio1Restar.addEventListener("click",restarRadio1,false);
 botonRadio2Sumar.addEventListener("click",aumentarRadio2,false);
@@ -145,8 +145,10 @@ function drawScreen(){
     limpiar();
 
     
-    
-    
+    dondeChoca(ball1);
+    dondeChoca(ball2);
+    buscarPelota();
+
     march();
     punto();
     chocarRaqueta();
@@ -157,16 +159,11 @@ function drawScreen(){
     
     chocarPared();
     draw();
-    
-    
-
-    
-    
-    
-    
-    
-    
-
+    delete ball1.puntoDeImapcto;
+    delete ball2.puntoDeImapcto;
+    delete ball1.tiempoDeImpacto;
+    delete ball2.tiempoDeImpacto;
+   
 }
 
 function draw(){
@@ -488,7 +485,7 @@ function draw(){
     function switchMultiplayer(){
     if (multiplayer=="false"){
         multiplayer="true";
-        raqueta2 = {longitud: 70,abcisa: 0 ,ordenada: 0, alto: 15};
+        raqueta2 = {longitud: 70,abcisa: 0 ,ordenada: 0, alto: 15, velX: 1};
         raqueta2.abcisa=canvas.width/2-raqueta2.longitud/2;
         raqueta2.ordenada=30;
         console.log("2 jugadores");
@@ -516,7 +513,7 @@ function draw(){
     ctx.strokeStyle = '#000000';
     ctx.strokeRect(1,  1,canvas.width-2, canvas.height-2);}
 
-    function moverRaqueta(e){
+    function moverRaqueta1(e){
         e.preventDefault();
        abcisaMouse = e.clientX - canvas.offsetLeft;
        if(abcisaMouse>0 && abcisaMouse<canvas.width ){
@@ -531,6 +528,59 @@ function draw(){
                 t=botonDificultad.children[i].value
             }
         }
+    }
+
+    function dondeChoca(bola){
+        if(bola.velY<0){
+        let vx=bola.velX;
+        let xi=bola.abcisa;
+        let x=xi;
+        let tmax= -(bola.ordenada/bola.velY);
+
+        for( let t=0, T=0; T<tmax;t=t+1,T=T+1){
+
+            if(x>0 && x<canvas.width){
+                x=xi+t*vx
+            }
+            else if (x<=0){
+                x=0.01;
+                xi=x;
+                vx = -vx;
+                t=0;
+            } else if (x>=canvas.width){
+                x=canvas.width-0.01;
+                xi=x;
+                vx = -vx;
+                t=0;
+            }
+              
+        }
+         return [bola.puntoDeImapcto=x,bola.tiempoDeImpacto=tmax]
+        
+    }
+    }
+
+    function buscarPelota(){
+        if(ball1.puntoDeImapcto && ball2.puntoDeImapcto){
+            if(ball1.tiempoDeImpacto<ball2.tiempoDeImpacto){
+                raquetaIA(ball1.puntoDeImapcto);
+            }else if(ball1.tiempoDeImpacto>ball2.tiempoDeImpacto){
+                raquetaIA(ball2.puntoDeImapcto)
+            }
+        } else if(ball1.puntoDeImapcto && !ball2.puntoDeImapcto){
+            raquetaIA(ball1.puntoDeImapcto);
+        } else if(!ball1.puntoDeImapcto && ball2.puntoDeImapcto){
+            raquetaIA(ball2.puntoDeImapcto);
+        }
+    }
+
+    function raquetaIA(punto){
+      if (raqueta2.abcisa+(raqueta2.longitud/2)<punto){
+        if(raqueta2.abcisa+raqueta2.longitud<canvas.width){
+        raqueta2.abcisa=raqueta2.abcisa+raqueta2.velX*t}
+      } else if(raqueta2.abcisa+(raqueta2.longitud/2)>punto){
+        raqueta2.abcisa=raqueta2.abcisa-raqueta2.velX*t
+      }        
     }
 
 
