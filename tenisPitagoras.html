@@ -86,6 +86,7 @@ var t = 1;
 let distanciaABola;
 let score=[0,0]; 
 let chocoBola;
+limpiar();
 
 
 document.getElementById("score1").innerHTML="Jugador 1= "+score[0]+" puntos";
@@ -515,9 +516,6 @@ function draw(){
 
 
 
-        
-    
-    
        function gameloop(){
         if( estado =="on") {
         window.setTimeout(gameloop,t);
@@ -527,41 +525,8 @@ function draw(){
 
     gameloop();
 
-
-
-
-    
-
-    
-
-
-
 }
-
-
-
-
-    
-    
-
-
-
-
-
-
-
-   
-
-
-   
-
-
-
-
-
-
-
-        
+       
         </script>
 </body>
 </html>
