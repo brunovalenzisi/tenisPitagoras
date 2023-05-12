@@ -63,7 +63,7 @@ margin-top: 40px;">1 / 2 jugadores
 var canvas = document.getElementById("canvas");
 var botonJugadores=document.getElementById("jugadores");
 var botonDificultad = document.getElementById("formularioDificultad")
-var multiplayer= "false"; 
+var multiplayer= "true"; 
 var estado = "off"
 
 var ctx = canvas.getContext("2d");
@@ -71,14 +71,17 @@ distanciaBola1ARaqueta1=[];
 let distanciaBola1ARaqueta2=[];
 let distanciaBola2ARaqueta1=[];
 let distanciaBola2ARaqueta2=[];
-let ball1 = {ordenada:300,velX:getRandomArbitrary(-1, 1),velY:1,radio: 10,nombre:"bola1",disanciaRaqueta1: 0,disanciaRaqueta2: 0 };
-let ball2 = {ordenada:300,velX:getRandomArbitrary(-1, 1),velY:-1,radio:10,nombre:"bola2",disanciaRaqueta1: 0,disanciaRaqueta2: 0 };
+let ball1 = {ordenada:canvas.height/2,velX:getRandomArbitrary(-1, 1),velY:1,radio: 10,nombre:"bola1",disanciaRaqueta1: 0,disanciaRaqueta2: 0 };
+let ball2 = {ordenada:canvas.height/2,velX:getRandomArbitrary(-1, 1),velY:-1,radio:10,nombre:"bola2",disanciaRaqueta1: 0,disanciaRaqueta2: 0 };
 ball1.abcisa=canvas.width/2-ball1.radio-3;
 ball2.abcisa=canvas.width/2+ball2.radio+3;
 let raqueta1 = {longitud: 70,abcisa: 0 ,ordenada: 0, alto: 15};
+let raqueta2 = {longitud: 70,abcisa: 0 ,ordenada: 0, alto: 15, velX: 2};
+raqueta2.abcisa=canvas.width/2-raqueta2.longitud/2;
+raqueta2.ordenada=30;
 raqueta1.abcisa=canvas.width/2-raqueta1.longitud/2;
 raqueta1.ordenada=canvas.height-raqueta1.alto-30;
-let raqueta2;
+
 var t = 1;
 let distanciaABola;
 let score=[0,0]; 
@@ -103,19 +106,34 @@ function getRandomArbitrary(min, max) {
     window.addEventListener('load', eventWindowLoaded, false);  
     function eventWindowLoaded() {
     canvasApp();
-    
-}
+    }
+
+
 
 
 function canvasApp(){
-    botonJugadores.addEventListener("click",switchMultiplayer,false);
-    
-  canvas.addEventListener("click",encenderApagar,false)
-  document.addEventListener('keydown', (event) => {
+
+botonJugadores.addEventListener("click",switchMultiplayer,false);
+
+canvas.addEventListener("click",encenderApagar,false)
+
+
+
+ if(multiplayer=="true"){    
+document.addEventListener('keydown', (event) => {
   var keyValue = event.key;
-  var codeValue = event.code;
-  if(keyValue=="a"){raqueta2.abcisa=raqueta2.abcisa-50}
-  else if(keyValue=="s"){raqueta2.abcisa=raqueta2.abcisa+50} else if(keyValue=="p"){encenderApagar();}   
+  if(keyValue=="a"){if(estado=="on"){raqueta2.abcisa=raqueta2.abcisa-50;}
+}
+  else if(keyValue=="s"){if(estado=="on"){raqueta2.abcisa=raqueta2.abcisa+50}}   
+}, false);
+ }
+
+    
+
+
+document.addEventListener('keydown', (event) => {
+  var keyValue = event.key;
+  if(keyValue=="p"){encenderApagar();}   
 }, false);
 
 botonDificultad.addEventListener("change", setearDificultad,false );
@@ -144,31 +162,36 @@ function drawScreen(){
 
     limpiar();
 
+    switch(multiplayer){
+        case "false":
+            dondeChoca(ball1);
+            dondeChoca(ball2);
+            buscarPelota();
+            break;
+    }
     
-    dondeChoca(ball1);
-    dondeChoca(ball2);
-    buscarPelota();
 
     march();
     punto();
     chocarRaqueta();
-    
-   
     tantear();
     chocarBola();
-    
     chocarPared();
     draw();
-    delete ball1.puntoDeImapcto;
-    delete ball2.puntoDeImapcto;
-    delete ball1.tiempoDeImpacto;
-    delete ball2.tiempoDeImpacto;
+    switch(multiplayer){
+        case "false":
+        delete ball1.puntoDeImapcto;
+        delete ball2.puntoDeImapcto;
+        delete ball1.tiempoDeImpacto;
+        delete ball2.tiempoDeImpacto;
+        break;
+       }
+    
    
 }
 
 function draw(){
-    switch(multiplayer){   
-        case "true": 
+       
     ctx.fillStyle = "#000000";
     ctx.fillRect(raqueta1.abcisa, raqueta1.ordenada, raqueta1.longitud, raqueta1.alto);
     ctx.fillRect(raqueta2.abcisa, raqueta2.ordenada, raqueta2.longitud, raqueta2.alto);
@@ -186,26 +209,6 @@ function draw(){
     ctx.arc(ball2.abcisa,ball2.ordenada,ball2.radio,0,2*Math.PI,false);
     ctx.closePath();
     ctx.fill();
-    break;
-    
-    case "false":
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(raqueta1.abcisa, raqueta1.ordenada, raqueta1.longitud, raqueta1.alto);
-    limiteRaqueta(raqueta1);
-    
-     ctx.fillStyle = "blue";
-    ctx.beginPath();
-    ctx.arc(ball1.abcisa,ball1.ordenada,ball1.radio,0,2*Math.PI,false);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(ball2.abcisa,ball2.ordenada,ball2.radio,0,2*Math.PI,false);
-    ctx.closePath();
-    ctx.fill();
-    break;
-    }   
 }
 
     
@@ -221,9 +224,11 @@ function draw(){
         if(ball1.abcisa+ball1.radio >= canvas.width) {
             ball1.abcisa = canvas.width-ball1.radio;
             ball1.velX = -ball1.velX;
+            
         } else if(ball1.abcisa-ball1.radio <= 0) {
             ball1.abcisa = ball1.radio;
-            ball1.velX = -ball1.velX }
+            ball1.velX = -ball1.velX;
+             }
         else if (ball1.ordenada+ball1.radio >= canvas.height) {
             ball1.ordenada = canvas.height-ball1.radio;
             ball1.velY = -ball1.velY 
@@ -236,10 +241,12 @@ function draw(){
         
         else if(ball2.abcisa+ball2.radio >= canvas.width) {
             ball2.abcisa = canvas.width-ball2.radio;
-            ball2.velX = -ball2.velX
+            ball2.velX = -ball2.velX;
+            
         } else if(ball2.abcisa-ball2.radio <= 0) {
             ball2.abcisa = ball2.radio;
-            ball2.velX = -ball2.velX }
+            ball2.velX = -ball2.velX;
+            }
         else if (ball2.ordenada+ball2.radio >= canvas.height) {
             ball2.ordenada = canvas.height-ball2.radio;
             ball2.velY = -ball2.velY 
@@ -265,6 +272,7 @@ function draw(){
         if(distanciaABola <= (ball1.radio+ball2.radio)*(ball1.radio+ball2.radio)) {
             console.log("choco");
             chocoBola = true;
+            
   
         }
 
@@ -272,8 +280,7 @@ function draw(){
     }
 
     function chocarRaqueta (){
-        switch(multiplayer){
-            case "true":
+        
         distanciaBola1ARaqueta1=[];
         distanciaBola1ARaqueta2=[];
         distanciaBola2ARaqueta1=[];
@@ -322,46 +329,7 @@ function draw(){
             
             
         }
-        break;
-        
-        
-        case "false":
-        distanciaBola1ARaqueta1=[];
-        
-        distanciaBola2ARaqueta1=[];
-       
-        
-       for(let i=0;i<raqueta1.longitud;i++){
-            distanciaBola1ARaqueta1[i]=Math.sqrt((raqueta1.abcisa+i-ball1.abcisa)*(raqueta1.abcisa+i-ball1.abcisa)+(raqueta1.ordenada-ball1.ordenada)*(raqueta1.ordenada-ball1.ordenada))-ball1.radio;
- };
-        for(let i=0;i<raqueta1.longitud;i++){
-            distanciaBola2ARaqueta1[i]=Math.sqrt((raqueta1.abcisa+i-ball2.abcisa)*(raqueta1.abcisa+i-ball2.abcisa)+(raqueta1.ordenada-ball2.ordenada)*(raqueta1.ordenada-ball2.ordenada))-ball2.radio;
- };
- 
-                
-        ball1.disanciaRaqueta1=Math.min.apply(null, distanciaBola1ARaqueta1);
-        
-        ball2.disanciaRaqueta1=Math.min.apply(null, distanciaBola2ARaqueta1);
-        
-        
-        if(ball1.disanciaRaqueta1<=0){
-            ball1.ordenada=raqueta1.ordenada-ball1.radio;
-            ball1.velY=-ball1.velY;
-            
-            
-        } 
-        else if(ball2.disanciaRaqueta1<=0){
-            ball2.ordenada=raqueta1.ordenada-ball2.radio;
-            ball2.velY=-ball2.velY;
-            
-            
-        }
-        break;
-
-        
-
-    }
-   
+                  
 }
         
     
@@ -398,36 +366,18 @@ function draw(){
         ball1.velY = Math.sin(collisionAngle) * final_velX_1 + Math.sin(collisionAngle + Math.PI/2) * final_velY_1;
         ball2.velX = Math.cos(collisionAngle) * final_velX_2 + Math.cos(collisionAngle + Math.PI/2) * final_velY_2;
         ball2.velY = Math.sin(collisionAngle) * final_velX_2 + Math.sin(collisionAngle + Math.PI/2) * final_velY_2;
-
         }
     }
 
     function punto(){
-        switch(multiplayer){
-            case "true":
         if(ball1.ordenada-ball1.radio>=raqueta1.ordenada || ball2.ordenada-ball2.radio>=raqueta1.ordenada){
             score[0]++;
             parar();
-            
-        }
+            }
         else   if(ball1.ordenada+ball1.radio<=raqueta2.ordenada+raqueta2.alto || ball2.ordenada+ball2.radio<=raqueta2.ordenada+raqueta2.alto){
             score[1]++;
             parar();
-            
-        }
-        break;
-
-        case "false":
-        if(ball1.ordenada-ball1.radio>=raqueta1.ordenada || ball2.ordenada-ball2.radio>=raqueta1.ordenada){
-            score[0]++;
-            parar();
-            
-        }
-       
-        break;
-
-    }
-
+            }
     }
 
 
@@ -437,22 +387,17 @@ function draw(){
         }
         else if (raquetas.abcisa+raquetas.longitud>canvas.width){
             raquetas.abcisa=canvas.width-raquetas.longitud-1
-        }
-        
+        }    
     }
 
    
 
-    function parar(){
-        switch(multiplayer){
-            case "true":
+    function parar(){  
         estado="off";
-        
-        ball1.ordenada=300; 
+        ball1.ordenada=canvas.height/2; 
         ball1.velX=getRandomArbitrary(-1, 1);
         ball1.velY=1;
-        
-        ball2.ordenada=300; 
+        ball2.ordenada=canvas.height/2; 
         ball2.velX=getRandomArbitrary(-1, 1);
         ball2.velY=-1;
         document.getElementById("score1").innerHTML="Jugador 1= "+score[0]+" puntos";
@@ -460,58 +405,43 @@ function draw(){
         raqueta1.abcisa=canvas.width/2-raqueta1.longitud/2;
         raqueta2.abcisa=canvas.width/2-raqueta2.longitud/2;
         ball1.abcisa=canvas.width/2-ball1.radio-3;
-        ball2.abcisa=canvas.width/2+ball2.radio+3;
-        break;
-
-        case "false":
-        estado="off";
-        
-        ball1.ordenada=300; 
-        ball1.velX=getRandomArbitrary(-1, 1);
-        ball1.velY=1;
-        
-        ball2.ordenada=300; 
-        ball2.velX=getRandomArbitrary(-1, 1);
-        ball2.velY=-1;
-        document.getElementById("score1").innerHTML="Jugador 1= "+score[0]+" puntos";
-        document.getElementById("score2").innerHTML="Jugador 2= "+score[1]+" puntos";
-        raqueta1.abcisa=canvas.width/2-raqueta1.longitud/2;
-        ball1.abcisa=canvas.width/2-ball1.radio-3;
-        ball2.abcisa=canvas.width/2+ball2.radio+3;
-        break;
-        }   
+        ball2.abcisa=canvas.width/2+ball2.radio+3;   
     }
 
     function switchMultiplayer(){
     if (multiplayer=="false"){
         multiplayer="true";
-        raqueta2 = {longitud: 70,abcisa: 0 ,ordenada: 0, alto: 15, velX: 1};
-        raqueta2.abcisa=canvas.width/2-raqueta2.longitud/2;
-        raqueta2.ordenada=30;
-        console.log("2 jugadores");
-        reset();
-        
+       reset();     
     }
-    else if(multiplayer=="true"){multiplayer="false";raqueta2={};console.log("1 jugador");reset();}}
+    else if(multiplayer=="true"){
+        multiplayer="false";
+        reset();
+    }
+    }
 
     function reset(){
         score=[0,0];
         parar();
         limpiar();
-        ball1.ordenada=300;
-        ball2.ordenada=300;
-        ball1.abcisa=canvas.width/2-ball1.radio-3;
-        ball2.abcisa=canvas.width/2+ball2.radio+3;
-        draw();
-        
-        
+        draw(); 
         }
 
     function limpiar(){
-    ctx.fillStyle = '#EEEEEE';
+    ctx.fillStyle = '#6Dc36D';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#000000';
-    ctx.strokeRect(1,  1,canvas.width-2, canvas.height-2);}
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(10,  10,canvas.width-20, canvas.height-20);
+    ctx.beginPath();
+    ctx.moveTo(10,canvas.height/2);
+    ctx.lineTo(canvas.width-10,canvas.height/2);
+    ctx.closePath();
+    ctx.stroke();
+ 
+
+
+
+}
 
     function moverRaqueta1(e){
         e.preventDefault();
@@ -535,25 +465,24 @@ function draw(){
         let vx=bola.velX;
         let xi=bola.abcisa;
         let x=xi;
-        let tmax= -(bola.ordenada/bola.velY);
+        let tmax= -((bola.ordenada-bola.radio-raqueta2.ordenada)/bola.velY);
 
         for( let t=0, T=0; T<tmax;t=t+1,T=T+1){
 
-            if(x>0 && x<canvas.width){
+            if(x>=bola.radio && x<=canvas.width-bola.radio){
                 x=xi+t*vx
             }
-            else if (x<=0){
-                x=0.01;
+            else if (x<bola.radio){
+                x=bola.radio;
                 xi=x;
                 vx = -vx;
                 t=0;
-            } else if (x>=canvas.width){
-                x=canvas.width-0.01;
+            } else if (x>canvas.width-bola.radio){
+                x=canvas.width-bola.radio;
                 xi=x;
                 vx = -vx;
                 t=0;
-            }
-              
+            }       
         }
          return [bola.puntoDeImapcto=x,bola.tiempoDeImpacto=tmax]
         
@@ -578,8 +507,8 @@ function draw(){
       if (raqueta2.abcisa+(raqueta2.longitud/2)<punto){
         if(raqueta2.abcisa+raqueta2.longitud<canvas.width){
         raqueta2.abcisa=raqueta2.abcisa+raqueta2.velX*t}
-      } else if(raqueta2.abcisa+(raqueta2.longitud/2)>punto){
-        raqueta2.abcisa=raqueta2.abcisa-raqueta2.velX*t
+      }  else if(raqueta2.abcisa+(raqueta2.longitud/2)>punto){if (raqueta2.abcisa>0){
+        raqueta2.abcisa=raqueta2.abcisa-raqueta2.velX*t}
       }        
     }
 
