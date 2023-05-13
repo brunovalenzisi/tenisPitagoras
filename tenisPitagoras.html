@@ -30,10 +30,15 @@ margin-top: 40px;">1 / 2 jugadores
 </button>
 
 <form id="formularioDificultad">
-    <input style="margin-left: 700px;" type="radio" name="dificultad" id="facil" value="1" checked>facil
-    <input type="radio" name="dificultad" id="moderado" value="2">moderado
-    <input type="radio" name="dificultad" id="dificil" value="3">dificil
-    <input type="radio" name="dificultad" id="dificil" value="4">extremo
+    <input style="margin-left: 700px;" type="radio" name="velocidad" value="1" checked>tortuga
+    <input type="radio" name="velocidad"  value="2">lento
+    <input type="radio" name="velocidad"  value="3">rapido
+    <input type="radio" name="velocidad"  value="4">extremo
+    <br>
+    <input style="margin-left: 700px;" type="radio" name="dificultad"  value="0.7">facil
+    <input type="radio" name="dificultad"  value="0.75" checked>medio
+    <input type="radio" name="dificultad"  value="2">dificil
+
 </form>
 </div>
 <label  for="radio1+"><button id="botonRadio1+" class="botonradio" style ="height:20px ;
@@ -62,7 +67,9 @@ margin-top: 40px;">1 / 2 jugadores
 <script type="text/javascript">
 var canvas = document.getElementById("canvas");
 var botonJugadores=document.getElementById("jugadores");
-var botonDificultad = document.getElementById("formularioDificultad")
+var formularioDificultad = document.getElementById("formularioDificultad")
+var botonVelocidad = document.getElementsByName("velocidad")
+var botonDificultad = document.getElementsByName("dificultad")
 var multiplayer= "false"; 
 var estado = "off"
 
@@ -153,7 +160,7 @@ document.addEventListener('keydown', (event) => {
   if(keyValue=="p"){encenderApagar();}   
 }, false);
 
-botonDificultad.addEventListener("change", setearDificultad,false );
+formularioDificultad.addEventListener("change", setearDificultad,false );
 document.addEventListener("mousemove",moverRaqueta1,false);
 
 botonRadio1Sumar.addEventListener("click",aumentarRadio1,false);
@@ -455,9 +462,14 @@ function draw(){
     
     
     function setearDificultad() {
-        for(let i=0; i<botonDificultad.children.length;i++){
-            if(botonDificultad.children[i].checked){
-                t=botonDificultad.children[i].value
+        for(let i=0; i<botonVelocidad.length;i++){
+            if(botonVelocidad[i].checked){
+                t=botonVelocidad[i].value
+            }
+        }
+        for(let i=0;i<botonDificultad.length;i++){
+            if(botonDificultad[i].checked){
+                raqueta2.velX=botonDificultad[i].value
             }
         }
     }
